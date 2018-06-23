@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sea-ice/compose.git"
+    "url": "git+https://github.com/sea-ice/imgs-free-combine.git"
   },
   "keywords": [
     "SSD"
@@ -16,9 +16,9 @@
   "author": "Jack",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/sea-ice/compose/issues"
+    "url": "https://github.com/sea-ice/imgs-free-combine/issues"
   },
-  "homepage": "https://github.com/sea-ice/compose#readme",
+  "homepage": "https://github.com/sea-ice/imgs-free-combine#readme",
   "dependencies": {
     "canvas": "^2.0.0-alpha.12"
   }
