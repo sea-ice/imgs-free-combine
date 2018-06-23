@@ -1,0 +1,25 @@
+{
+  "name": "compose",
+  "version": "1.0.0",
+  "description": "compose images to make ssd train data",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sea-ice/compose.git"
+  },
+  "keywords": [
+    "SSD"
+  ],
+  "author": "Jack",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sea-ice/compose/issues"
+  },
+  "homepage": "https://github.com/sea-ice/compose#readme",
+  "dependencies": {
+    "canvas": "^2.0.0-alpha.12"
+  }
+}
