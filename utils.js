@@ -57,6 +57,46 @@ function areaRotate (area, angle) {
   }
 }
 
+/**
+ * 获取子图在背景图中的坐标信息
+ * @param {*} img 
+ */
+function getImgPlacePos (bgw, bgh, img) {
+  let {startX, startY, width, height, rotateAngle} = img
+  startX = Math.abs(startX)
+  startY = Math.abs(startY)
+  switch (rotateAngle) {
+    case 90:
+      return {
+        xmin: startY, 
+        ymin: startX - width, 
+        xmax: startY + height, 
+        ymax: startX
+      }
+    case 180:
+      return {
+        xmin: startX - width, 
+        ymin: startY - height, 
+        xmax: startX, 
+        ymax: startY
+      }
+    case 270:
+      return {
+        xmin: startY - height, 
+        ymin: startX, 
+        xmax: startY, 
+        ymax: startX + width
+      }
+    default:
+      return {
+        xmin: startX, 
+        ymin: startY,
+        xmax: startX + width,
+        ymax: startY + height
+      }
+  }
+}
+
 function getRandomArrayEles (array, n) {
   let results = []
   let len = array.length
@@ -86,6 +126,7 @@ module.exports = {
   loadImages,
   drawImage,
   areaRotate,
+  getImgPlacePos,
   saveImageTo,
   getRandomPoint,
   getRandomArrayEles

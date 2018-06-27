@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/sea-ice/imgs-free-combine#readme",
   "dependencies": {
-    "canvas": "^2.0.0-alpha.12"
+    "canvas": "^2.0.0-alpha.12",
+    "xml2js": "^0.4.19"
   }
 }

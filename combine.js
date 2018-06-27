@@ -1,5 +1,6 @@
 let fs = require('fs')
 let path = require('path')
+let xml2js = require('xml2js')
 let utils = require('./utils')
 let {createCanvas, loadImage} = require('canvas')
 
@@ -15,51 +16,43 @@ async function placeImages (n, bgImage, config) {
   let imgDir = utils.resolve(config.composeDir)
   let files = fs.readdirSync(imgDir)
   files = files.filter(img => img.match(/\.(png|jpe?g|bmp)$/))
-  // load all images
-  let allImages = await utils.loadImages(
-    files.map(filename => path.resolve(imgDir, filename))
-  )
 
   let {
-    areaTop, 
-    areaBottom, 
-    areaLeft, 
-    areaRight, 
     xgap = 0, 
-    ygap = 0
+    ygap = 0,
+    areas
   } = config
-  // one image
-  // let areas = [
-  //   [[areaLeft, areaTop], [width - areaRight, height - areaBottom]]
-  // ]
-
-  // two images
-  // let areas = [
-  //   [[areaLeft, areaTop], [areaLeft + (width - areaRight - areaLeft) / 2, height - areaBottom]],
-  //   [[areaLeft + (width - areaRight - areaLeft) / 2, areaTop], [width - areaRight, height - areaBottom]]
-  // ]
-
-  // three images
-  // let areas = [
-  //   [[areaLeft, areaTop], [areaLeft + (width - areaRight - areaLeft) / 2, areaTop + (height - areaBottom - areaTop) / 2]],
-  //   [[areaLeft, areaTop + (height - areaBottom - areaTop) / 2], [areaLeft + (width - areaRight - areaLeft) / 2, height - areaBottom]],
-  //   [[areaLeft + (width - areaRight - areaLeft) / 2, areaTop], [width - areaRight, height - areaBottom]]
-  // ]
-
-  // four images
-  let areas = [
-    [[areaLeft, areaTop], [areaLeft + (width - areaRight - areaLeft) / 2, areaTop + (height - areaBottom - areaTop) / 2]],
-    [[areaLeft, areaTop + (height - areaBottom - areaTop) / 2], [areaLeft + (width - areaRight - areaLeft) / 2, height - areaBottom]],
-    [[areaLeft + (width - areaRight - areaLeft) / 2, areaTop], [width - areaRight, areaTop + (height - areaBottom - areaTop) / 2]],
-    [[areaLeft + (width - areaRight - areaLeft) / 2, areaTop + (height - areaBottom - areaTop) / 2], [width - areaRight, height - areaBottom]]
-  ]
 
   let resultFile = fs.openSync(path.resolve(config.outputDir, './txt/results.txt'), 'a')
+
+  const XMLParser = new xml2js.Parser({explicitArray: false}),
+        XMLBuilder = new xml2js.Builder({headless: true})
+  let {annotation, template} = await new Promise((resolve, reject) => {
+    // 读取xml基本模板
+    let t = fs.readFileSync(config.xmlTemplate)
+    XMLParser.parseString(t, function (err, template) {
+      let depth = 3
+      let annotation = template.annotation
+      annotation.folder = config.xmlFolderName
+      annotation.size = {width, height, depth}
+      if (err) {
+        reject(err)
+      } else {
+        resolve({
+          annotation,
+          template
+        })
+      }
+    })
+  })
+  let generateCount = 0
   for (let i = 0; i < n; i++) {
     while (true) {
-      let rotateAngles = utils.getRandomArrayEles([0, 90, 180, 270], areas.length)
+      let targets = utils.getRandomArrayEles(files, areas.length).map(filename => path.resolve(config.composeDir, filename))
       // 最终绘制的图像旋转方向为逆时针方向
-      let imgs = utils.getRandomArrayEles(allImages, areas.length)
+      let imgs = await utils.loadImages(targets)
+      let rotateAngles = utils.getRandomArrayEles([0, 90, 180, 270], areas.length)
+
       let imgTooBig = false
       for (let j = 0, len = areas.length; j < len; j++) {
         let rotateArea = utils.areaRotate(areas[j], rotateAngles[j])
@@ -91,22 +84,48 @@ async function placeImages (n, bgImage, config) {
       }
 
       if (!imgTooBig) {
+        annotation.object = []
         utils.drawImage(ctx, bgImage, 0, 0)
         for (let img of imgs) {
           let [startX, startY] = img.startPoint ? img.startPoint : utils.getRandomPoint(...img.startPointArea)
+
+          let imgPlacePos = utils.getImgPlacePos(width, height, Object.assign(img, {
+            startX,
+            startY
+          }))
+          annotation.object.push({
+            name: config.getTypeName(path.basename(img.src)),
+            pose: 'Unspecified',
+            truncated: '0',
+            difficult: '0',
+            bndbox: imgPlacePos
+          })
+
           ctx.save()
           ctx.rotate((360 - img.rotateAngle) * Math.PI / 180)
-          console.log(img.src)
-          console.log(img.rotateAngle)
+          // console.log(img.src)
+          // console.log(img.rotateAngle)
+          // console.log(imgPlacePos)
           utils.drawImage(ctx, img, startX, startY)
           ctx.restore()
         }
-        let saveImgName = `${Date.now()}.png`
-        console.log(saveImgName)
-        utils.saveImageTo(canvas, path.resolve(config.outputDir, `./test/${saveImgName}`))
+        let now = Date.now()
+        // console.log(`${now}.png`)
+        utils.saveImageTo(canvas, path.resolve(config.outputDir, `./imgs/${now}.png`))
         ctx.clearRect(0, 0, canvas.width, canvas.height)
-        let types = targets.map(filename => filename.match(/dish-(\d+)\.png/)[1]).join(',')
-        fs.writeSync(resultFile, `${saveImgName} ${types}\n`)
+        // let types = targets.map(filename => filename.match(/dish-(\d+)\.png/)[1]).join(',')
+        // fs.writeSync(resultFile, `${now}.png ${types}\n`)
+
+        annotation.filename = now
+        
+        let xml = XMLBuilder.buildObject(template)
+        fs.writeFileSync(
+          path.resolve(
+            config.xmlSavePath, 
+            `${now}.xml`
+          ), xml
+        )
+        console.log(`Generate ${++generateCount} / ${n} items`)
         break
       }
     }

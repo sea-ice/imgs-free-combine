@@ -1,5 +1,6 @@
 results/imgs/*
 results/test/*
 results/txt/*
+results/xml/*
 node_modules
 assets/images/*
