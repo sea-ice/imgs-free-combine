@@ -121,6 +121,16 @@ function getRandomPoint (p1, p2) {
   return [x, y]
 }
 
+function arrayEquals (a1, a2) {
+  if (a1.length !== a2.length) return false
+  let sortedA1 = a1.sort((a, b) => a - b) // 升序排列
+  let sortedA2 = a2.sort((a, b) => a - b)
+  for (let i = 0, len = sortedA1.length; i < len; i++) {
+    if (sortedA1[i] !== sortedA2[i]) return false
+  }
+  return true
+}
+
 module.exports = {
   resolve,
   loadImages,
@@ -129,5 +139,6 @@ module.exports = {
   getImgPlacePos,
   saveImageTo,
   getRandomPoint,
-  getRandomArrayEles
+  getRandomArrayEles,
+  arrayEquals
 }

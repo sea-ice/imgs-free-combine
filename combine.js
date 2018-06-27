@@ -25,26 +25,27 @@ async function placeImages (n, bgImage, config) {
 
   let resultFile = fs.openSync(path.resolve(config.outputDir, './txt/results.txt'), 'a')
 
-  const XMLParser = new xml2js.Parser({explicitArray: false}),
-        XMLBuilder = new xml2js.Builder({headless: true})
-  let {annotation, template} = await new Promise((resolve, reject) => {
-    // 读取xml基本模板
-    let t = fs.readFileSync(config.xmlTemplate)
-    XMLParser.parseString(t, function (err, template) {
-      let depth = 3
-      let annotation = template.annotation
-      annotation.folder = config.xmlFolderName
-      annotation.size = {width, height, depth}
-      if (err) {
-        reject(err)
-      } else {
-        resolve({
-          annotation,
-          template
-        })
-      }
-    })
-  })
+  // 如果要生成xml去掉以下注释
+  // const XMLParser = new xml2js.Parser({explicitArray: false}),
+  //       XMLBuilder = new xml2js.Builder({headless: true})
+  // let {annotation, template} = await new Promise((resolve, reject) => {
+  //   // 读取xml基本模板
+  //   let t = fs.readFileSync(config.xmlTemplate)
+  //   XMLParser.parseString(t, function (err, template) {
+  //     let depth = 3
+  //     let annotation = template.annotation
+  //     annotation.folder = config.xmlFolderName
+  //     annotation.size = {width, height, depth}
+  //     if (err) {
+  //       reject(err)
+  //     } else {
+  //       resolve({
+  //         annotation,
+  //         template
+  //       })
+  //     }
+  //   })
+  // })
   let generateCount = 0
   for (let i = 0; i < n; i++) {
     while (true) {
@@ -84,22 +85,24 @@ async function placeImages (n, bgImage, config) {
       }
 
       if (!imgTooBig) {
-        annotation.object = []
+        // 如果要生成xml去掉以下注释
+        // annotation.object = []
         utils.drawImage(ctx, bgImage, 0, 0)
         for (let img of imgs) {
           let [startX, startY] = img.startPoint ? img.startPoint : utils.getRandomPoint(...img.startPointArea)
 
-          let imgPlacePos = utils.getImgPlacePos(width, height, Object.assign(img, {
-            startX,
-            startY
-          }))
-          annotation.object.push({
-            name: config.getTypeName(path.basename(img.src)),
-            pose: 'Unspecified',
-            truncated: '0',
-            difficult: '0',
-            bndbox: imgPlacePos
-          })
+          // 如果要生成xml去掉以下注释
+          // let imgPlacePos = utils.getImgPlacePos(width, height, Object.assign(img, {
+          //   startX,
+          //   startY
+          // }))
+          // annotation.object.push({
+          //   name: config.getTypeName(path.basename(img.src)),
+          //   pose: 'Unspecified',
+          //   truncated: '0',
+          //   difficult: '0',
+          //   bndbox: imgPlacePos
+          // })
 
           ctx.save()
           ctx.rotate((360 - img.rotateAngle) * Math.PI / 180)
@@ -113,18 +116,19 @@ async function placeImages (n, bgImage, config) {
         // console.log(`${now}.png`)
         utils.saveImageTo(canvas, path.resolve(config.outputDir, `./imgs/${now}.png`))
         ctx.clearRect(0, 0, canvas.width, canvas.height)
-        // let types = targets.map(filename => filename.match(/dish-(\d+)\.png/)[1]).join(',')
-        // fs.writeSync(resultFile, `${now}.png ${types}\n`)
+        let types = targets.map(filename => filename.match(/dish-(\d+)\.png/)[1]).join(',')
+        fs.writeSync(resultFile, `${now}.png ${types}\n`)
 
-        annotation.filename = now
+        // 如果要生成xml去掉以下注释
+        // annotation.filename = now
         
-        let xml = XMLBuilder.buildObject(template)
-        fs.writeFileSync(
-          path.resolve(
-            config.xmlSavePath, 
-            `${now}.xml`
-          ), xml
-        )
+        // let xml = XMLBuilder.buildObject(template)
+        // fs.writeFileSync(
+        //   path.resolve(
+        //     config.xmlSavePath, 
+        //     `${now}.xml`
+        //   ), xml
+        // )
         console.log(`Generate ${++generateCount} / ${n} items`)
         break
       }
